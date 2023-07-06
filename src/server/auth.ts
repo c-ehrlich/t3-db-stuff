@@ -12,6 +12,10 @@ import { db } from "~/server/db";
 import * as schema from "~/server/db/schema";
 
 /**
+ * @reviewer there should not be any console logs in this file
+ */
+
+/**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
  *
@@ -89,6 +93,7 @@ export function DrizzleAdapter(): Adapter {
   const { users, sessions, accounts, verificationTokens } = schema;
   return {
     createUser: async (data) => {
+      console.log("in createUser... data:", data);
       const id = crypto.randomUUID();
 
       await db.insert(users).values({ ...data, id });
@@ -99,17 +104,22 @@ export function DrizzleAdapter(): Adapter {
         .where(eq(users.id, id))
         .then((res) => res[0]);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      console.log("created user: ", user!);
       return user!;
     },
     getUser: async (data) => {
+      console.log("in getUser... data:", data);
       const user = await db.select().from(users).where(eq(users.id, data));
+      console.log("getUser...", user);
       return user[0] ?? null;
     },
     getUserByEmail: async (data) => {
+      console.log("in getUserByEmail... data:", data);
       const user = await db.select().from(users).where(eq(users.email, data));
       return user[0] ?? null;
     },
     createSession: async (data) => {
+      console.log("in createSession... data:", data);
       await db.insert(sessions).values(data);
 
       const session = await db
@@ -117,9 +127,14 @@ export function DrizzleAdapter(): Adapter {
         .from(sessions)
         .where(eq(sessions.sessionToken, data.sessionToken));
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      console.log("created session, returning element 0 of:", session);
       return session[0]!;
     },
+    /**
+     * @TODO: the types for this are wrong. maybe the whole function is incorrect??
+     */
     getSessionAndUser: async (data) => {
+      console.log("in getSessionAndUser... data:", data);
       const sessionAndUser = await db
         .select({
           session: sessions,
@@ -129,6 +144,7 @@ export function DrizzleAdapter(): Adapter {
         .where(eq(sessions.sessionToken, data))
         .innerJoin(users, eq(users.id, sessions.userId));
 
+      console.log("returning sessionAndUser:", sessionAndUser);
       return sessionAndUser[0] ?? null;
     },
     updateUser: async (data) => {
@@ -155,20 +171,25 @@ export function DrizzleAdapter(): Adapter {
         .then((res) => res[0]);
     },
     linkAccount: async (rawAccount) => {
+      console.log("in linkAccount... rawAccount:", rawAccount);
       await db
         .insert(accounts)
         .values(rawAccount)
-        .then((res) => res.rows[0]);
+        .then((res) => {
+          console.log("in linkAccount, returning `.rows[0]` of:", res);
+          // return res.rows[0];
+        });
     },
     getUserByAccount: async (account) => {
+      console.log("in getUserByAccount... account:", account);
       const dbAccount = await db
         .select()
         .from(accounts)
         .where(
           and(
             eq(accounts.providerAccountId, account.providerAccountId),
-            eq(accounts.provider, account.provider),
-          ),
+            eq(accounts.provider, account.provider)
+          )
         )
         .leftJoin(users, eq(accounts.userId, users.id))
         .then((res) => res[0]);
@@ -196,8 +217,8 @@ export function DrizzleAdapter(): Adapter {
             .where(
               and(
                 eq(verificationTokens.identifier, token.identifier),
-                eq(verificationTokens.token, token.token),
-              ),
+                eq(verificationTokens.token, token.token)
+              )
             )
             .then((res) => res[0])) ?? null;
 
@@ -206,8 +227,8 @@ export function DrizzleAdapter(): Adapter {
           .where(
             and(
               eq(verificationTokens.identifier, token.identifier),
-              eq(verificationTokens.token, token.token),
-            ),
+              eq(verificationTokens.token, token.token)
+            )
           );
 
         return deletedToken;
@@ -230,8 +251,8 @@ export function DrizzleAdapter(): Adapter {
         .where(
           and(
             eq(accounts.providerAccountId, account.providerAccountId),
-            eq(accounts.provider, account.provider),
-          ),
+            eq(accounts.provider, account.provider)
+          )
         );
 
       return undefined;

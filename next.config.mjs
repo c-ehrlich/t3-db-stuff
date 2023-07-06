@@ -18,5 +18,13 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  /**
+   * @review this is for the top-level await in `erc/server/db/index.ts`
+   * there is probably a better way to do this
+   */
+  webpack(config) {
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    return config;
+  },
 };
 export default config;

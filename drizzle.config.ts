@@ -4,6 +4,10 @@ import { type Config } from "drizzle-kit";
 dotenv.config();
 
 export default {
+  driver: "mysql2",
   schema: "./src/server/db/schema.ts",
-  connectionString: process.env.DATABASE_URL,
+  dbCredentials: {
+    connectionString: process.env.DATABASE_URL as string,
+  },
+  breakpoints: true,
 } satisfies Config;

@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  db-dev:
+    image: mysql
+    restart: always
+    container_name: ct3a-db-dev
+    ports:
+      - '42069:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme
+      MYSQL_DATABASE: ct3a
